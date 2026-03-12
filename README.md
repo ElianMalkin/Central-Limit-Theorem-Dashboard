@@ -4,9 +4,7 @@ A Streamlit app that demonstrates the **Central Limit Theorem (CLT)**: even when
 
 ## Live deployment
 
-Add your Streamlit Community Cloud URL here after publishing:
-
-[https://share.streamlit.io/your-username/clt-playground/main/app.py](https://share.streamlit.io/your-username/clt-playground/main/app.py)
+[https://central-limit-theorem-dash.streamlit.app/](https://central-limit-theorem-dash.streamlit.app/)
 
 ## What the app demonstrates
 
@@ -31,10 +29,8 @@ The default distribution on load is **Bimodal Gaussian mixture** so the CLT effe
 
 - Sidebar controls for distribution type, parameters, sample size, number of simulations, and random seed
 - A toggle to show or hide the population statistics summary cards
-- A permanently visible histogram of sample means alongside the repeated sample means plot
 - Numerical summary cards for population mean, mean of the simulated sample means, empirical standard deviation of the sample means, and theoretical standard error
-- A centered explanation callout and a math explainer section with properly rendered formulas and inline notation
-- A CLT progression panel to make the convergence easier to see visually
+- A math explainer section
 
 ## Repo structure
 
@@ -91,23 +87,17 @@ python -m streamlit run app.py
 
 ## Short explanation of the math
 
-If \(X_1, X_2, \ldots, X_n\) are i.i.d. random variables with mean \(\mu\) and standard deviation \(\sigma\), then the sample mean is
+If X<sub>1</sub>, X<sub>2</sub>, ..., X<sub>n</sub> are i.i.d. random variables with mean μ and standard deviation σ, then the sample mean is:
 
-\[
-\bar{X}_n = \frac{1}{n}\sum_{i=1}^n X_i.
-\]
+<p><strong>X̄<sub>n</sub> = (1 / n) Σ<sub>i=1</sub><sup>n</sup> X<sub>i</sub></strong></p>
 
-The Central Limit Theorem says that for large enough \(n\),
+The Central Limit Theorem says that for large enough <em>n</em>:
 
-\[
-\bar{X}_n \approx \mathcal{N}\left(\mu, \frac{\sigma^2}{n}\right).
-\]
+<p><strong>X̄<sub>n</sub> ≈ N(μ, σ<sup>2</sup> / n)</strong></p>
 
 So even if the original data are skewed or non-normal, the **distribution of sample means** tends toward a normal distribution. The spread of that distribution is the **standard error**:
 
-\[
-\text{SE}(\bar{X}_n) = \frac{\sigma}{\sqrt{n}}.
-\]
+<p><strong>SE(X̄<sub>n</sub>) = σ / √n</strong></p>
 
 That is why larger sample sizes produce a tighter, more bell-shaped histogram of sample means.
 
@@ -118,4 +108,3 @@ To deploy on Streamlit Community Cloud:
 1. Push this repository to GitHub.
 2. Go to [Streamlit Community Cloud](https://share.streamlit.io/).
 3. Create a new app and point it to `app.py`.
-4. After deployment, replace the placeholder link at the top of this README with the real public URL.
