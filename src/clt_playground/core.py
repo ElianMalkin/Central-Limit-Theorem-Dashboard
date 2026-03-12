@@ -3,7 +3,6 @@
 from dataclasses import dataclass
 
 import numpy as np
-import pandas as pd
 
 
 @dataclass
@@ -139,11 +138,3 @@ def simulate_clt(
 def build_progression_sizes(sample_size: int) -> list[int]:
     candidates = [1, max(2, sample_size // 5), max(2, sample_size // 2), sample_size]
     return sorted(set(candidates))
-
-
-def build_sample_preview(raw_samples: np.ndarray, limit: int = 10) -> pd.DataFrame:
-    frame = pd.DataFrame(raw_samples[:limit])
-    frame.insert(0, "simulation", np.arange(1, len(frame) + 1))
-    frame["sample_mean"] = raw_samples[:limit].mean(axis=1)
-    rename_map = {column: f"x{column}" for column in frame.columns if isinstance(column, int)}
-    return frame.rename(columns=rename_map)

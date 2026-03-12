@@ -1,15 +1,8 @@
 ﻿from __future__ import annotations
 
-import numpy as np
-import pandas as pd
 import streamlit as st
 
-from src.clt_playground.core import (
-    available_distributions,
-    build_progression_sizes,
-    build_sample_preview,
-    simulate_clt,
-)
+from src.clt_playground.core import available_distributions, build_progression_sizes, simulate_clt
 from src.clt_playground.plots import (
     create_population_figure,
     create_progression_figure,
@@ -20,7 +13,6 @@ from src.clt_playground.plots import (
 
 st.set_page_config(
     page_title="Central Limit Theorem Playground",
-    page_icon="📊",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -62,16 +54,52 @@ def _format_distribution_parameters(params: dict[str, float]) -> str:
     return ", ".join(f"{key}={value:.3g}" for key, value in params.items())
 
 
+def _inject_styles() -> None:
+    st.markdown(
+        """
+        <style>
+            .hero-text {
+                font-size: 1.06rem;
+                margin: -0.35rem 0 0.75rem 0;
+                color: #334155;
+            }
+            .centered-callout {
+                font-size: 1.06rem;
+                text-align: center;
+                background: #eef6ff;
+                border: 1px solid #c7ddf8;
+                border-radius: 0.8rem;
+                padding: 0.9rem 1rem;
+                margin: 0.4rem 0 1rem 0;
+                color: #1e3a5f;
+            }
+            .supporting-note {
+                font-size: 0.98rem;
+                color: #475569;
+                line-height: 1.5;
+                margin-top: 0.35rem;
+            }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
 def main() -> None:
+    _inject_styles()
+
     st.title("Central Limit Theorem Playground")
-    st.caption(
-        "Explore how averages behave when we repeatedly sample from skewed, discrete, and bimodal populations."
+    st.markdown(
+        '<p class="hero-text">Explore how averages behave when we repeatedly sample from skewed, discrete, and bimodal populations.</p>',
+        unsafe_allow_html=True,
     )
 
     labels = _distribution_label_lookup()
+    distribution_options = list(labels.keys())
     distribution_name = st.sidebar.selectbox(
         "Distribution type",
-        list(labels.keys()),
+        distribution_options,
+        index=distribution_options.index("bimodal"),
         format_func=lambda key: labels[key],
     )
     params = _sidebar_distribution_parameters(distribution_name)
@@ -81,9 +109,7 @@ def main() -> None:
     random_seed = st.sidebar.number_input("Random seed", min_value=0, max_value=1_000_000, value=42, step=1)
 
     st.sidebar.markdown("### Display options")
-    show_raw_data = st.sidebar.checkbox("Display raw simulation data", value=False)
-    show_means_histogram = st.sidebar.checkbox("Display histogram of sample means", value=True)
-    show_theoretical_reference = st.sidebar.checkbox("Display theoretical mean and standard error", value=True)
+    show_population_statistics = st.sidebar.checkbox("Show population statistics", value=True)
 
     simulation = simulate_clt(
         distribution_name=distribution_name,
@@ -93,29 +119,21 @@ def main() -> None:
         seed=int(random_seed),
     )
 
-    population_df = pd.DataFrame({"value": simulation.population_sample})
-    sample_means_df = pd.DataFrame(
-        {
-            "simulation": np.arange(1, len(simulation.sample_means) + 1),
-            "sample_mean": simulation.sample_means,
-        }
+    st.markdown(
+        '<div class="centered-callout">Even when the original distribution is skewed, sample means become approximately normal as sample size increases.</div>',
+        unsafe_allow_html=True,
     )
 
-    st.info(
-        "Even when the original distribution is skewed, sample means become approximately "
-        "normal as sample size increases."
-    )
-
-    metric_columns = st.columns(4 if show_theoretical_reference else 3)
-    metric_columns[0].metric("Population mean", f"{simulation.population_mean:.4f}")
-    metric_columns[1].metric("Mean of sample means", f"{simulation.sample_means.mean():.4f}")
-    metric_columns[2].metric("Empirical std of sample means", f"{simulation.sample_means.std(ddof=1):.4f}")
-    if show_theoretical_reference:
+    if show_population_statistics:
+        metric_columns = st.columns(4)
+        metric_columns[0].metric("Population mean", f"{simulation.population_mean:.4f}")
+        metric_columns[1].metric("Mean of sample means", f"{simulation.sample_means.mean():.4f}")
+        metric_columns[2].metric("Empirical std of sample means", f"{simulation.sample_means.std(ddof=1):.4f}")
         metric_columns[3].metric("Theoretical standard error", f"{simulation.theoretical_standard_error:.4f}")
 
     summary_columns = st.columns([1.3, 1])
     with summary_columns[0]:
-        st.pyplot(create_population_figure(simulation), clear_figure=True, use_container_width=True)
+        st.pyplot(create_population_figure(simulation), clear_figure=True, width="stretch")
     with summary_columns[1]:
         st.subheader("Experiment setup")
         st.markdown(
@@ -130,23 +148,20 @@ def main() -> None:
                 ]
             )
         )
-        st.caption(
-            "As n grows, the sample-means skewness usually shrinks toward zero, which is one way to see the CLT in action."
+        st.markdown(
+            '<p class="supporting-note">As n grows, the sample-means skewness usually shrinks toward zero, which is one way to see the CLT in action.</p>',
+            unsafe_allow_html=True,
         )
 
     chart_columns = st.columns(2)
     with chart_columns[0]:
-        st.pyplot(create_sample_means_figure(simulation), clear_figure=True, use_container_width=True)
+        st.pyplot(create_sample_means_figure(simulation), clear_figure=True, width="stretch")
     with chart_columns[1]:
-        if show_means_histogram:
-            st.pyplot(
-                create_sample_means_histogram(simulation, show_theoretical_reference),
-                clear_figure=True,
-                use_container_width=True,
-            )
-        else:
-            st.subheader("Histogram hidden")
-            st.write("Enable the histogram toggle in the sidebar to inspect the distribution of sample means.")
+        st.pyplot(
+            create_sample_means_histogram(simulation, show_theoretical_reference=True),
+            clear_figure=True,
+            width="stretch",
+        )
 
     progression_sizes = build_progression_sizes(sample_size)
     progression_note = ", ".join(str(size) for size in progression_sizes)
@@ -159,41 +174,26 @@ def main() -> None:
             seed=int(random_seed),
         ),
         clear_figure=True,
-        use_container_width=True,
+        width="stretch",
     )
     st.caption(f"Comparison panel for n = {progression_note}.")
 
-    if show_raw_data:
-        preview_df = build_sample_preview(simulation.raw_samples, limit=10)
-        with st.expander("Raw simulation preview", expanded=False):
-            st.write("Population sample preview")
-            st.dataframe(population_df.head(15), use_container_width=True)
-            st.write("First repeated samples")
-            st.dataframe(preview_df, use_container_width=True)
-            st.write("Sample means preview")
-            st.dataframe(sample_means_df.head(20), use_container_width=True)
-
     with st.expander("Math behind the app", expanded=False):
         st.markdown(
-            r"""
-For independent observations \(X_1, X_2, \dots, X_n\) with finite mean \(\mu\) and standard deviation \(\sigma\),
-the sample mean is
-
-\[
-\bar{X}_n = \frac{1}{n}\sum_{i=1}^{n} X_i
-\]
-
-and the Central Limit Theorem says that, for large \(n\),
-
-\[
-\bar{X}_n \approx \mathcal{N}\left(\mu, \frac{\sigma^2}{n}\right).
-\]
-
-That is why the sample-means histogram tends to look more Gaussian even when the original population is skewed or discrete.
-            """
+            r"For independent observations $X_1$, $X_2$, ..., $X_n$ with finite mean $\mu$ and standard deviation $\sigma$, the sample mean is:"
+        )
+        st.latex(r"\bar{X}_n = \frac{1}{n}\sum_{i=1}^{n} X_i")
+        st.markdown(
+            "The Central Limit Theorem says that, for large enough n (where n is the sample size):"
+        )
+        st.latex(r"\bar{X}_n \approx \mathcal{N}\left(\mu, \frac{\sigma^2}{n}\right)")
+        st.write(
+            "Essentially, when we repeatedly sample from a distribution and compute the average of each sample, the distribution of those averages becomes approximately normal as the sample size increases, even if the original data are not normally distributed."
+        )
+        st.write(
+            "That is why the sample-means histogram tends to look more Gaussian even when the original population is skewed or discrete."
         )
 
 
 if __name__ == "__main__":
     main()
-

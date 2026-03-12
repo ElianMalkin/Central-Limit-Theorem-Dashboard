@@ -25,12 +25,15 @@ Included distributions:
 - Lognormal
 - Bimodal Gaussian mixture
 
+The default distribution on load is **Bimodal Gaussian mixture** so the CLT effect is easy to see from a clearly non-normal starting point.
+
 ## App features
 
 - Sidebar controls for distribution type, parameters, sample size, number of simulations, and random seed
-- Optional toggles for raw simulation tables, the sample-means histogram, and theoretical reference values
+- A toggle to show or hide the population statistics summary cards
+- A permanently visible histogram of sample means alongside the repeated sample means plot
 - Numerical summary cards for population mean, mean of the simulated sample means, empirical standard deviation of the sample means, and theoretical standard error
-- A short explanation box and a math explainer section
+- A centered explanation callout and a math explainer section with properly rendered formulas and inline notation
 - A CLT progression panel to make the convergence easier to see visually
 
 ## Repo structure
@@ -61,13 +64,13 @@ Included distributions:
 2. Install dependencies:
 
 ```bash
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 ```
 
 3. Start the app:
 
 ```bash
-streamlit run app.py
+python -m streamlit run app.py
 ```
 
 4. Open the local URL shown by Streamlit, usually `http://localhost:8501`.
